@@ -17,7 +17,7 @@ module Insque
     create_send_later_handler
   end
 
-  def self.broadcast message, params, recipient = :any
+  def self.broadcast message, params = nil, recipient = :any
     keys = []
     case recipient
     when :any
@@ -28,28 +28,33 @@ module Insque
       keys = recipient.is_a?(Array) ? recipient : [recipient]
     end
     value = { :message => "#{@sender}_#{message}", :params => params, :broadcasted_at => Time.now.utc }
-    Rails.logger.info "SENDING: #{value.to_json} TO #{keys.to_json}" if @debug
+    log "SENDING: #{value.to_json} TO #{keys.to_json}" if @debug
     keys.each {|k| @redis.lpush k, value.to_json}
   end
 
-  def self.listen 
+  def self.listen worker_name=''
     @redis.sadd 'insque_inboxes', @inbox
+    log "#{worker_name} START LISTENING #{@inbox}"
     loop do
       message = @redis.brpoplpush(@inbox, @processing, 0)
-      Rails.logger.info "RECEIVING: #{message}" if @debug
+      log "#{worker_name} RECEIVING: #{message}" if @debug
       begin
         parsed_message = JSON.parse message
         send(parsed_message['message'], parsed_message) if self.respond_to? parsed_message['message']
       rescue => e
-        Rails.logger.info "========== BROKEN_MESSAGE: #{message} =========="
-        Rails.logger.info e.inspect
-        Rails.logger.info e.backtrace
+        log "#{worker_name} ========== BROKEN_MESSAGE: #{message} =========="
+        log e.inspect
+        log e.backtrace
       end
       @redis.lrem @processing, 0, message
     end
   end
 
   private
+  def self.log message
+    print "#{message}\n"
+    STDOUT.flush
+  end
 
   def self.create_send_later_handler
     define_singleton_method("#{@sender}_send_later") do |msg|
