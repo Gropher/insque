@@ -1,4 +1,5 @@
 require "insque/version"
+require "redis"
 
 module Insque
   def self.debug= debug
