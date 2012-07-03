@@ -23,9 +23,9 @@ At first you need to generate initializer and redis config file:
     $ rails g insque:initializer
 
 To broadcast message use:
-
-    Insque.broadcast :message_name, {:params => {:some => :params}}
-
+```ruby
+Insque.broadcast :message_name, {:params => {:some => :params}}
+```
 To start recieving messages you need to:
 
 1. Create handler method in Insque module:
