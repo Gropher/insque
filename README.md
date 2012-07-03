@@ -36,8 +36,9 @@ end
 ```
 
 2. Call listen method in some background process or rake task:
-
-    Insque.listen
+```ruby
+Insque.listen
+```
 
 ## Contributing
 
