@@ -18,9 +18,10 @@ Or install it yourself as:
 
 ## Usage
 
-At first you need to generate initializer and redis config file:
+At first you need to generate initializer and redis config file. Pass your sender name as parameter. 
+Sender name is the unique identifier of your instance of insque. You can use several instances of insque to create message driven communication system 
 
-    $ rails g insque:initializer
+    $ rails g insque:initializer somesender
 
 To broadcast message use:
 ```ruby
@@ -28,7 +29,7 @@ Insque.broadcast :message_name, {:params => {:some => :params}}
 ```
 To start recieving messages you need to:
 
-1. Create handler method in Insque module:
+1. Create handler method in Insque module. First part of handler name is the name of the message sender.
 ```ruby
 def somesender_message_name message
   #TODO: Handle message somehow
