@@ -10,7 +10,7 @@ module Insque
       end
 
       def create_initializer
-        template 'insque.rb', 'config/initializers/insque.erb'
+        template 'insque.erb', 'config/initializers/insque.rb'
         template 'redis.yml', 'config/redis.yml'
       end
     end
