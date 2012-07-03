@@ -6,7 +6,7 @@ Instant queue. Background processing and message driven communication tool. Fast
 
 Add this line to your application's Gemfile:
 
-    gem 'insque'
+    gem 'insque', :git => 'https://github.com/Gropher/Insque.git'
 
 And then execute:
 
@@ -18,7 +18,25 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+At first you need to generate initializer and redis config file:
+
+    $ rails g insque:initializer
+
+To broadcast message use:
+
+    Insque.broadcast :message_name, {:params => {:some => :params}}
+
+To start recieving messages you need to:
+
+1. Create handler method in Insque module:
+
+    def somesender_message_name message
+      #TODO: Handle message somehow
+    end
+
+2. Call listen method in some background process or rake task:
+
+    Insque.listen
 
 ## Contributing
 
