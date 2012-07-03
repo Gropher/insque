@@ -27,6 +27,12 @@ To broadcast message use:
 ```ruby
 Insque.broadcast :message_name, {:params => {:some => :params}}
 ```
+There is an easy way to use insque as background jobs processing. You can use `send_later` method to call any method of your rails models in background
+. You still need listener running to make this work.
+```ruby
+@model = MyModel.first
+@model.send_later :mymethod, 'some', 'params'
+```
 To start recieving messages you need to:
 
 1. Create handler method in Insque module. First part of handler name is the name of the message sender.
@@ -36,7 +42,7 @@ def somesender_message_name message
 end
 ```
 
-2. Call listen method in some background process or rake task:
+2. Call `listen` method in some background process or rake task:
 ```ruby
 Insque.listen
 ```
