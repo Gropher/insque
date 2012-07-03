@@ -29,10 +29,11 @@ To broadcast message use:
 To start recieving messages you need to:
 
 1. Create handler method in Insque module:
-
-    def somesender_message_name message
-      #TODO: Handle message somehow
-    end
+```ruby
+def somesender_message_name message
+  #TODO: Handle message somehow
+end
+```
 
 2. Call listen method in some background process or rake task:
 
