@@ -6,7 +6,7 @@ namespace :insque do
   end
 
   desc 'Starts insque janitor'
-  task :listener => :environment do
+  task :janitor => :environment do
     Rails.logger = Logger.new(File.open("#{Rails.root}/log/insque.log"))
     Insque.janitor
   end
