@@ -1,6 +1,5 @@
-require "insque"
-
-config = YAML.load(File.open("#{Rails.root}/config/redis.yml"))[Rails.env]
-Insque.redis = Redis.new(:host => config["host"], :port => config["port"])
 Insque.sender = '<%= sender_name %>'
+REDIS_CONFIG = YAML.load(File.open("#{Rails.root}/config/redis.yml"))[Rails.env]
+$redis = Redis.new(:host => REDIS_CONFIG["host"], :port => REDIS_CONFIG["port"])
+Insque.redis = $redis
 Insque.debug = true

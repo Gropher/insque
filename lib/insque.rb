@@ -51,6 +51,35 @@ module Insque
     end
   end
 
+  def self.janitor
+    loop do
+      @redis.watch @processing
+      errors = []
+      restart = []
+      delete = []
+      @redis.lrange(@processing, 0, -1).each do |m|
+        begin
+          parsed_message = JSON.parse(m)
+          if parsed_message['restarted_at'] && DateTime.parse(parsed_message['restarted_at']) < 1.hour.ago.utc
+            errors << parsed_message 
+            delete << parsed_message
+          elsif DateTime.parse(parsed_message['broadcasted_at']) < 1.hour.ago.utc
+            restart << parsed_message.merge('restarted_at' => Time.now.utc)
+            delete << parsed_message
+          end
+        rescue
+          log "========== JANITOR_ERROR: #{m} =========="
+        end
+      end
+      result = @redis.multi do |r|
+        restart.each {|m| r.lpush @inbox, m }
+        delete.each {|m| r.lrem @processing, 0, m }
+      end
+      log "CLEANING SUCCESSFULL AT #{Time.now.utc}" if result
+      log "CLEANING FAILED AT #{Time.now.utc}" unless result
+    end
+  end
+
   private
   def self.log message
     print "#{message}\n"
