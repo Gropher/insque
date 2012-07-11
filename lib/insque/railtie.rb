@@ -3,8 +3,6 @@ require 'rails'
 
 module Insque
   class Railtie < Rails::Railtie
-    rake_tasks do
-      import 'tasks/insque'
-    end
+    rake_tasks { load 'tasks/insque.rake' }
   end
 end
