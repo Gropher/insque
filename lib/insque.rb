@@ -1,5 +1,6 @@
 require "insque/version"
 require "redis"
+require "railtie" if defined?(Rails)
 
 module Insque
   def self.debug= debug
