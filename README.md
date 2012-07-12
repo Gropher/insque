@@ -47,6 +47,46 @@ end
 Insque.listen
 ```
 
+or just run `bundle exec rake insque:listener` from your console.
+
+3. Call `janitor` method in some background process or rake task. Janitor will reissue failed messages or report error if message fails again. Janitor treats message as failed if it was not processed for an hour after broadcast or reissue.
+```ruby
+Insque.janitor
+```
+
+or just run `bundle exec rake insque:janitor` from your console.
+
+
+If you want to run insque listener as a daemon consider using [foreman](https://github.com/ddollar/foreman) for this.
+
+Add foreman to your `Gemfile`:
+
+   gem 'foreman', :git => 'git://github.com/danielfarrell/foreman.git', :branch => 'capistrano'
+
+Install it:
+
+    $ bundle install  
+
+Create `Procfile`:
+
+    listener: bundle exec rake insque:listener
+    janitor: bundle exec rake insque:janitor
+
+Run foreman from your console:
+    
+    $ bundle exec foreman start
+
+For production use modify your capistrano deploy script somewhat like this:
+    
+    set :default_environment, {'PATH' => "/sbin:$PATH"}  # Optional. Useful if you get erros because start or restart command not found
+    default_run_options[:pty] = true                     # Needed for RVM to work
+    set :sudo, 'rvmsudo'                                 # Or just 'sudo' if you don't use RVM. You may also need to modify /etc/sudoers on server.
+    set :foreman_concurrency, "\"listener=4,janitor=2\"" # How many processes of each type do you want
+    require 'foreman/capistrano'
+    
+    after "deploy:update", "foreman:export"              # Export Procfile as a set of upstart jobs
+    after "deploy:update", "foreman:restart"             # You will need upstart installed on your server for this to work.
+
 ## Contributing
 
 1. Fork it
