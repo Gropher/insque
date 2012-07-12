@@ -69,15 +69,21 @@ module Insque
             delete << parsed_message
           end
         rescue
-          log "========== JANITOR_ERROR: #{m} =========="
+          log "========== JANITOR_BROKEN_MESSAGE: #{m} =========="
         end
       end
       result = @redis.multi do |r|
         restart.each {|m| r.lpush @inbox, m }
         delete.each {|m| r.lrem @processing, 0, m }
       end
-      log "CLEANING SUCCESSFULL AT #{Time.now.utc}" if result
-      log "CLEANING FAILED AT #{Time.now.utc}" unless result
+      if result
+        errors.each {|m| log "ERROR: #{m.to_json}" }
+        restart.each {|m| log "RESTART: #{m.to_json}" }
+        log "CLEANING SUCCESSFULL AT #{Time.now.utc}"
+      else
+        log "CLEANING FAILED AT #{Time.now.utc}"
+      end
+      sleep(Random.rand * 10)
     end
   end
 
