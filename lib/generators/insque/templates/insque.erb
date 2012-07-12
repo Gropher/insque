@@ -3,3 +3,11 @@ REDIS_CONFIG = YAML.load(File.open("#{Rails.root}/config/redis.yml"))[Rails.env]
 $redis = Redis.new(:host => REDIS_CONFIG["host"], :port => REDIS_CONFIG["port"])
 Insque.redis = $redis
 Insque.debug = true
+if defined?(PhusionPassenger)
+  PhusionPassenger.on_event(:starting_worker_process) do |forked|
+    if forked
+      $redis = Redis.new(:host => REDIS_CONFIG["host"], :port => REDIS_CONFIG["port"])
+      Insque.redis = $redis
+    end
+  end
+end
