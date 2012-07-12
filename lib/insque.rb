@@ -63,17 +63,17 @@ module Insque
           parsed_message = JSON.parse(m)
           if parsed_message['restarted_at'] && DateTime.parse(parsed_message['restarted_at']) < 1.hour.ago.utc
             errors << parsed_message 
-            delete << parsed_message
+            delete << m
           elsif DateTime.parse(parsed_message['broadcasted_at']) < 1.hour.ago.utc
-            restart << parsed_message.merge('restarted_at' => Time.now.utc)
-            delete << parsed_message
+            restart << parsed_message.merge(:restarted_at => Time.now.utc)
+            delete << m
           end
         rescue
           log "========== JANITOR_BROKEN_MESSAGE: #{m} =========="
         end
       end
       result = @redis.multi do |r|
-        restart.each {|m| r.lpush @inbox, m }
+        restart.each {|m| r.lpush @inbox, m.to_json }
         delete.each {|m| r.lrem @processing, 0, m }
       end
       if result
