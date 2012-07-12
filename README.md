@@ -23,6 +23,8 @@ Sender name is the unique identifier of your instance of insque. You can use sev
 
     $ rails g insque:initializer somesender
 
+### Sending
+
 To broadcast message use:
 ```ruby
 Insque.broadcast :message_name, {:params => {:some => :params}}
@@ -33,6 +35,9 @@ There is an easy way to use insque as background jobs processing. You can use `s
 @model = MyModel.first
 @model.send_later :mymethod, 'some', 'params'
 ```
+
+### Recieving
+
 To start recieving messages you need to:
 
 1. Create handler method in Insque module. First part of handler name is the name of the message sender.
@@ -47,15 +52,16 @@ end
 Insque.listen
 ```
 
-or just run `bundle exec rake insque:listener` from your console.
+   or just run `bundle exec rake insque:listener` from your console.
 
 3. Call `janitor` method in some background process or rake task. Janitor will reissue failed messages or report error if message fails again. Janitor treats message as failed if it was not processed for an hour after broadcast or reissue.
 ```ruby
 Insque.janitor
 ```
 
-or just run `bundle exec rake insque:janitor` from your console.
+   or just run `bundle exec rake insque:janitor` from your console.
 
+### Daemonizing
 
 If you want to run insque listener as a daemon consider using [foreman](https://github.com/ddollar/foreman) for this.
 
