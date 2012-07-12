@@ -84,7 +84,7 @@ Run foreman from your console:
 
 For production use modify your capistrano deploy script somewhat like this:
     
-    set :default_environment, {'PATH' => "/sbin:$PATH"}  # Optional. Useful if you get erros because start or restart command not found
+    set :default_environment, {'PATH' => "/sbin:$PATH"}  # Optional. Useful if you get errors because start or restart command not found
     default_run_options[:pty] = true                     # Needed for RVM to work
     set :sudo, 'rvmsudo'                                 # Or just 'sudo' if you don't use RVM. You may also need to modify /etc/sudoers on server.
     set :foreman_concurrency, "\"listener=4,janitor=2\"" # How many processes of each type do you want
