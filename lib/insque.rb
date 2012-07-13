@@ -89,7 +89,7 @@ module Insque
 
   private
   def self.log message
-    print "#{Time.now.utc} |#{message}\n"
+    print "#{Time.now.utc} #{message}\n"
     STDOUT.flush if @debug
   end
 
