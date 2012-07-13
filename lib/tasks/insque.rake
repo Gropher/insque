@@ -1,17 +1,13 @@
 namespace :insque do
   desc 'Starts insque listener'
   task :listener => :environment do
-    Kernel.trap('INT') {
-      Kernel.exit
-    }
+    trap('TERM') { exit 0 }
     Insque.listen
   end
 
   desc 'Starts insque janitor'
   task :janitor => :environment do
-    Kernel.trap('INT') {
-      Kernel.exit
-    }
+    trap('TERM') { exit 0 }
     Insque.janitor
   end
 end
