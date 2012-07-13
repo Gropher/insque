@@ -3,6 +3,8 @@ namespace :insque do
   task :listener => :environment do
     trap('TERM') { exit 0 }
     trap('HUP') { exit 0 }
+    trap('INT') { exit 0 }
+    trap('QUIT') { exit 0 }
     Insque.listen
   end
 
@@ -10,6 +12,8 @@ namespace :insque do
   task :janitor => :environment do
     trap('TERM') { exit 0 }
     trap('HUP') { exit 0 }
+    trap('INT') { exit 0 }
+    trap('QUIT') { exit 0 }
     Insque.janitor
   end
 end
