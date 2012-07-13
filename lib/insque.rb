@@ -79,9 +79,9 @@ module Insque
       if result
         errors.each {|m| log "ERROR: #{m.to_json}" }
         restart.each {|m| log "RESTART: #{m.to_json}" }
-        log "CLEANING SUCCESSFULL AT #{Time.now.utc}"
+        log "CLEANING SUCCESSFULL"
       else
-        log "CLEANING FAILED AT #{Time.now.utc}"
+        log "CLEANING FAILED"
       end
       sleep(Random.rand * 10)
     end
@@ -89,7 +89,7 @@ module Insque
 
   private
   def self.log message
-    print "#{Time.now.utc} #{message}\n"
+    print "#{Time.now.utc}|#{message}\n"
     STDOUT.flush if debug
   end
 
