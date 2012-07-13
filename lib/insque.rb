@@ -89,8 +89,8 @@ module Insque
 
   private
   def self.log message
-    print "#{Time.now.utc}|#{message}\n"
-    STDOUT.flush if debug
+    print "#{Time.now.utc} |#{message}\n"
+    STDOUT.flush if @debug
   end
 
   def self.create_send_later_handler
