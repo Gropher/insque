@@ -31,7 +31,9 @@ module Insque
     end
     value = { :message => "#{@sender}_#{message}", :params => params, :broadcasted_at => Time.now.utc }
     log "SENDING: #{value.to_json} TO #{keys.to_json}" if @debug
-    keys.each {|k| @redis.lpush k, value.to_json}
+    @redis.multi do |r|
+      keys.each {|k| r.lpush k, value.to_json}
+    end
   end
 
   def self.listen worker_name=''
