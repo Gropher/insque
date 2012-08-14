@@ -106,4 +106,17 @@ class ActiveRecord::Base
   def send_later(method, *args)
     Insque.broadcast :send_later, {:class => self.class.name, :id => id, :method => method, :args => args }, :self
   end
+  
+  def self.acts_as_insque_crud(*args)
+    options = args.extract_options!
+    excluded = (options[:exclude] || []).map(&:to_s)
+
+    [:update, :create, :destroy].each do |action|
+      set_callback action, :after do
+        params = self.serializable_hash(options).delete_if {|key| (['created_at', 'updated_at'] + excluded).include? key}
+        Insque.broadcast :"#{self.class.to_s.underscore}_#{action}", params
+      end
+    end
+  end
+
 end
