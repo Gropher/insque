@@ -68,7 +68,8 @@ If you want to run insque listener as a daemon consider using [foreman](https://
 If you deploy with capistrano you may want to try a version of foreman with build in capistrano support.
 
 Add foreman to your `Gemfile`:
-    \# gem 'foreman'
+
+    gem 'foreman' # OR
     gem 'foreman-capistrano'
 
 Install it:
