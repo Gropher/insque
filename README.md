@@ -67,7 +67,7 @@ If you want to run insque listener as a daemon consider using [foreman](https://
 
 Add foreman to your `Gemfile`:
 
-    gem 'foreman', :git => 'git://github.com/Gropher/foreman.git'
+    gem 'foreman-capistrano'
 
 Install it:
 
@@ -85,13 +85,11 @@ Run foreman from your console:
 For production use modify your capistrano deploy script somewhat like this:
     
     set :default_environment, {'PATH' => "/sbin:$PATH"}  # Optional. Useful if you get errors because start or restart command not found
-    default_run_options[:pty] = true                     # Needed for RVM to work
-    set :sudo, 'rvmsudo'                                 # Or just 'sudo' if you don't use RVM. You may also need to modify /etc/sudoers on server.
     set :foreman_concurrency, "\"listener=4,janitor=2\"" # How many processes of each type do you want
     require 'foreman/capistrano'
     
-    after "deploy:update", "foreman:export"              # Export Procfile as a set of upstart jobs
-    after "deploy:update", "foreman:restart"             # You will need upstart installed on your server for this to work.
+    after "deploy", "foreman:export"              # Export Procfile as a set of upstart jobs
+    after "deploy", "foreman:restart"             # You will need upstart installed on your server for this to work.
 
 ## Contributing
 
