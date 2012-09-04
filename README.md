@@ -64,10 +64,11 @@ Insque.janitor
 ### Daemonizing
 
 If you want to run insque listener as a daemon consider using [foreman](https://github.com/ddollar/foreman) for this. 
+
 If you deploy with capistrano you may want to try a version of foreman with build in capistrano support.
 
 Add foreman to your `Gemfile`:
-    # gem 'foreman'
+    \# gem 'foreman'
     gem 'foreman-capistrano'
 
 Install it:
