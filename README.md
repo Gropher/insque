@@ -6,20 +6,20 @@ Instant queue. Background processing and message driven communication tool. Fast
 
 Add this line to your application's Gemfile:
 
-    gem 'insque', :git => 'https://github.com/Gropher/Insque.git'
+    gem 'insque'
 
 And then execute:
 
     $ bundle
 
-Or install it yourself as:
+Or install it manually:
 
     $ gem install insque
 
 ## Usage
 
 At first you need to generate initializer and redis config file. Pass your sender name as parameter. 
-Sender name is the unique identifier of your instance of insque. You can use several instances of insque to create message driven communication system 
+Sender name is the unique identifier of your instance of insque. You can use several instances of insque to create message driven communication system. 
 
     $ rails g insque:initializer somesender
 
@@ -63,10 +63,13 @@ Insque.janitor
 
 ### Daemonizing
 
-If you want to run insque listener as a daemon consider using [foreman](https://github.com/ddollar/foreman) for this.
+If you want to run insque listener as a daemon consider using [foreman](https://github.com/ddollar/foreman) for this. 
+
+If you deploy with capistrano you may want to try a version of foreman with build in capistrano support.
 
 Add foreman to your `Gemfile`:
 
+    gem 'foreman' # OR
     gem 'foreman-capistrano'
 
 Install it:
@@ -85,11 +88,11 @@ Run foreman from your console:
 For production use modify your capistrano deploy script somewhat like this:
     
     set :default_environment, {'PATH' => "/sbin:$PATH"}  # Optional. Useful if you get errors because start or restart command not found
-    set :foreman_concurrency, "\"listener=4,janitor=2\"" # How many processes of each type do you want
+    set :foreman_concurrency, "\"listener=2,janitor=1\"" # How many processes of each type do you want
     require 'foreman/capistrano'
     
-    after "deploy", "foreman:export"              # Export Procfile as a set of upstart jobs
-    after "deploy", "foreman:restart"             # You will need upstart installed on your server for this to work.
+    after "deploy", "foreman:export"  # Export Procfile as a set of upstart jobs
+    after "deploy", "foreman:restart" # You will need upstart installed on your server for this to work.
 
 ## Contributing
 
