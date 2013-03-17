@@ -2,7 +2,7 @@ namespace :insque do
   desc 'Starts insque listener and janitor'
   task :run => :environment do
     trap('TERM') { puts "SIGTERM"; exit 0 }
-    threads = {}
+    threads = []
     threads << Thread.new() { Insque.listen }
     threads << Thread.new() { Insque.janitor }
     threads.each {|t| t.join }
