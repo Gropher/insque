@@ -38,7 +38,7 @@ module Insque
   end
 
   def self.listen worker_name=''
-    redis = Redis.new redis
+    redis = Redis.new @redis_config
     redis.select 7
 
     redis.sadd 'insque_inboxes', @inbox
@@ -59,7 +59,7 @@ module Insque
   end
 
   def self.janitor
-    redis = Redis.new redis
+    redis = Redis.new @redis_config
     redis.select 7
 
     loop do
