@@ -7,8 +7,9 @@ module Insque
     @debug = debug
   end
 
-  def self.redis= redis
-    @redis = redis
+  def self.redis_config= redis
+    @redis_config = redis
+    @redis = Redis.new @redis_config
     @redis.select 7
   end
 
@@ -37,10 +38,13 @@ module Insque
   end
 
   def self.listen worker_name=''
-    @redis.sadd 'insque_inboxes', @inbox
+    redis = Redis.new redis
+    redis.select 7
+
+    redis.sadd 'insque_inboxes', @inbox
     log "#{worker_name} START LISTENING #{@inbox}"
     loop do
-      message = @redis.brpoplpush(@inbox, @processing, 0)
+      message = redis.brpoplpush(@inbox, @processing, 0)
       log "#{worker_name} RECEIVING: #{message}" if @debug
       begin
         parsed_message = JSON.parse message
@@ -50,17 +54,20 @@ module Insque
         log e.inspect
         log e.backtrace
       end
-      @redis.lrem @processing, 0, message
+      redis.lrem @processing, 0, message
     end
   end
 
   def self.janitor
+    redis = Redis.new redis
+    redis.select 7
+
     loop do
-      @redis.watch @processing
+      redis.watch @processing
       errors = []
       restart = []
       delete = []
-      @redis.lrange(@processing, 0, -1).each do |m|
+      redis.lrange(@processing, 0, -1).each do |m|
         begin
           parsed_message = JSON.parse(m)
           if parsed_message['restarted_at'] && DateTime.parse(parsed_message['restarted_at']) < 1.hour.ago.utc
@@ -74,7 +81,7 @@ module Insque
           log "========== JANITOR_BROKEN_MESSAGE: #{m} =========="
         end
       end
-      result = @redis.multi do |r|
+      result = redis.multi do |r|
         restart.each {|m| r.lpush @inbox, m.to_json }
         delete.each {|m| r.lrem @processing, 0, m }
       end
@@ -89,7 +96,7 @@ module Insque
     end
   end
 
-  private
+private
   def self.log message
     print "#{Time.now.utc} #{message}\n"
     STDOUT.flush if @debug
