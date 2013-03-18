@@ -92,7 +92,7 @@ module Insque
       else
         log "CLEANING FAILED"
       end
-      sleep(Random.rand * 10)
+      sleep(Random.rand * 300)
     end
   end
 
