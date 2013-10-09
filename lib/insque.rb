@@ -118,11 +118,10 @@ if defined?(ActiveRecord::Base)
       options = args.extract_options!
       excluded = (options[:exclude] || []).map(&:to_s)
 
-      [:update, :create, :destroy].each do |action|
-        set_callback :commit, :after, on: action do
-          params = self.serializable_hash(options).delete_if {|key| (['created_at', 'updated_at'] + excluded).include? key}
-          Insque.broadcast :"#{self.class.to_s.underscore}_#{action}", params
-        end
+      set_callback :commit, :after do
+        action = [:create, :update, :destroy].map {|a| a if transaction_include_action?(a) }.compact.first
+        params = self.serializable_hash(options).delete_if {|key| (['created_at', 'updated_at'] + excluded).include? key}
+        Insque.broadcast :"#{self.class.to_s.underscore}_#{action}", params
       end
     end
   end
