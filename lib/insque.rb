@@ -104,7 +104,7 @@ private
 
   def self.create_send_later_handler
     define_singleton_method("#{@sender}_send_later") do |msg|
-      Kernel.const_get(msg['params']['class']).find(msg['params']['id']).send(msg['params']['method'], *msg['params']['args'])      
+      Kernel.const_get(msg['params']['class']).unscoped.find(msg['params']['id']).send(msg['params']['method'], *msg['params']['args'])      
     end
   end
 end
