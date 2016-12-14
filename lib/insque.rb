@@ -13,8 +13,8 @@ module Insque
       @redis = RedisCluster.new @redis_config
     else
       @redis = Redis.new @redis_config
+      @redis.select 7
     end
-    @redis.select 7
   end
 
   def self.sender= sender
