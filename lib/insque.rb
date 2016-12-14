@@ -9,7 +9,11 @@ module Insque
 
   def self.redis_config= redis
     @redis_config = redis
-    @redis = Redis.new @redis_config
+    if @redis_config.is_a? Array
+      @redis = RedisCluster.new @redis_config
+    else
+      @redis = Redis.new @redis_config
+    end
     @redis.select 7
   end
 
