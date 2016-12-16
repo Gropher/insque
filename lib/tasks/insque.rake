@@ -5,6 +5,8 @@ namespace :insque do
     threads = []
     threads << Thread.new() { Insque.listen }
     threads << Thread.new() { Insque.janitor }
+    threads << Thread.new() { Insque.slow_listen "SLOW" }
+    threads << Thread.new() { Insque.slow_janitor }
     threads.each {|t| t.join }
   end
 

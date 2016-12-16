@@ -9,18 +9,15 @@ module Insque
 
   def self.redis_config= redis
     @redis_config = redis
-    if @redis_config.is_a? Array
-      @redis = RedisCluster.new @redis_config
-    else
-      @redis = Redis.new @redis_config
-      @redis.select 7
-    end
+    @redis = self.create_redis_connection
   end
 
   def self.sender= sender
     @sender = sender
     @inbox = "insque_inbox_#{sender}"
     @processing = "insque_processing_#{sender}"
+    @slow_inbox = "insque_slow_inbox_#{sender}"
+    @slow_processing = "insque_slow_processing_#{sender}"
     create_send_later_handler
   end
 
@@ -31,6 +28,8 @@ module Insque
       keys = @redis.smembers 'insque_inboxes'
     when :self
       keys = [@inbox]
+    when :slow
+      keys = [@slow_inbox]
     else
       keys = recipient.is_a?(Array) ? recipient : [recipient]
     end
@@ -42,13 +41,28 @@ module Insque
   end
 
   def self.listen worker_name=''
-    redis = Redis.new @redis_config
-    redis.select 7
-
+    redis = create_redis_connection
     redis.sadd 'insque_inboxes', @inbox
-    log "#{worker_name} START LISTENING #{@inbox}"
+    do_listen @inbox, @processing, redis, worker_name
+  end
+
+  def self.slow_listen worker_name=''
+    do_listen @slow_inbox, @slow_processing, create_redis_connection, worker_name
+  end
+
+  def self.janitor
+    real_janitor @inbox, @processing, create_redis_connection
+  end
+
+  def self.slow_janitor
+    real_janitor @slow_inbox, @slow_processing, create_redis_connection
+  end
+
+private
+  def self.do_listen inbox, processing, redis, worker_name
+    log "#{worker_name} START LISTENING #{inbox}"
     loop do
-      message = redis.brpoplpush(@inbox, @processing, 0)
+      message = redis.brpoplpush(inbox, processing, 0)
       log "#{worker_name} RECEIVING: #{message}" if @debug
       begin
         parsed_message = JSON.parse message
@@ -58,20 +72,17 @@ module Insque
         log e.inspect
         log e.backtrace
       end
-      redis.lrem @processing, 0, message
+      redis.lrem processing, 0, message
     end
   end
 
-  def self.janitor
-    redis = Redis.new @redis_config
-    redis.select 7
-
+  def real_janitor inbox, processing, redis
     loop do
-      redis.watch @processing
+      redis.watch processing
       errors = []
       restart = []
       delete = []
-      redis.lrange(@processing, 0, -1).each do |m|
+      redis.lrange(processing, 0, -1).each do |m|
         begin
           parsed_message = JSON.parse(m)
           if parsed_message['restarted_at'] && DateTime.parse(parsed_message['restarted_at']) < 1.hour.ago.utc
@@ -86,8 +97,8 @@ module Insque
         end
       end
       result = redis.multi do |r|
-        restart.each {|m| r.lpush @inbox, m.to_json }
-        delete.each {|m| r.lrem @processing, 0, m }
+        restart.each {|m| r.lpush inbox, m.to_json }
+        delete.each {|m| r.lrem processing, 0, m }
       end
       if result
         errors.each {|m| log "ERROR: #{m.to_json}" }
@@ -100,7 +111,16 @@ module Insque
     end
   end
 
-private
+  def self.create_redis_connection
+    if @redis_config.is_a? Array
+      RedisCluster.new @redis_config
+    else
+      redis = Redis.new @redis_config
+      redis.select 7
+      redis
+    end
+  end 
+
   def self.log message
     print "#{Time.now.utc} #{message}\n"
     STDOUT.flush if @debug
@@ -116,7 +136,7 @@ end
 if defined?(ActiveRecord::Base)
   class ActiveRecord::Base
     def send_later(method, *args)
-      Insque.broadcast :send_later, {:class => self.class.name, :id => id, :method => method, :args => args }, :self
+      Insque.broadcast :send_later, {:class => self.class.name, :id => id, :method => method, :args => args }, :slow
     end
     def self.acts_as_insque_crud(*args)
       options = args.extract_options!
