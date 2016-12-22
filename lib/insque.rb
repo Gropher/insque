@@ -14,10 +14,10 @@ module Insque
 
   def self.sender= sender
     @sender = sender
-    @inbox = "insque_inbox_#{sender}"
-    @processing = "insque_processing_#{sender}"
-    @slow_inbox = "insque_slow_inbox_#{sender}"
-    @slow_processing = "insque_slow_processing_#{sender}"
+    @inbox = "insque_inbox_{#{sender}}"
+    @processing = "insque_processing_{#{sender}}"
+    @slow_inbox = "insque_slow_inbox_{#{sender}}"
+    @slow_processing = "insque_slow_processing_{#{sender}}"
     create_send_later_handler
   end
 
