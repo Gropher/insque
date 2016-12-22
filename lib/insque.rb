@@ -7,6 +7,18 @@ module Insque
     @debug = debug
   end
 
+  def self.redis= redis
+    @redis = redis
+  end
+
+  def redis
+    @redis
+  end
+
+  def redis_config
+    @redis_config
+  end
+
   def self.redis_config= redis
     @redis_config = redis
     @redis = self.create_redis_connection
@@ -14,10 +26,10 @@ module Insque
 
   def self.sender= sender
     @sender = sender
-    @inbox = "insque_inbox_{#{sender}}"
-    @processing = "insque_processing_{#{sender}}"
-    @slow_inbox = "insque_slow_inbox_{#{sender}}"
-    @slow_processing = "insque_slow_processing_{#{sender}}"
+    @inbox = "{insque}inbox_#{sender}"
+    @processing = "{insque}processing_#{sender}"
+    @slow_inbox = "{insque}slow_inbox_#{sender}"
+    @slow_processing = "{insque}slow_processing_#{sender}"
     create_send_later_handler
   end
 
@@ -25,7 +37,7 @@ module Insque
     keys = []
     case recipient
     when :any
-      keys = @redis.smembers 'insque_inboxes'
+      keys = @redis.smembers '{insque}inboxes'
     when :self
       keys = [@inbox]
     when :slow
@@ -40,22 +52,22 @@ module Insque
     end
   end
 
-  def self.listen worker_name=''
-    redis = create_redis_connection
-    redis.sadd 'insque_inboxes', @inbox
+  def self.listen worker_name='', redis=nil
+    redis ||= create_redis_connection
+    redis.sadd '{insque}inboxes', @inbox
     do_listen @inbox, @processing, redis, worker_name
   end
 
-  def self.slow_listen worker_name=''
-    do_listen @slow_inbox, @slow_processing, create_redis_connection, worker_name
+  def self.slow_listen worker_name='', redis=nil
+    do_listen @slow_inbox, @slow_processing, (redis || create_redis_connection), worker_name
   end
 
-  def self.janitor
-    real_janitor @inbox, @processing, create_redis_connection
+  def self.janitor redis=nil
+    real_janitor @inbox, @processing, (redis || create_redis_connection)
   end
 
-  def self.slow_janitor
-    real_janitor @slow_inbox, @slow_processing, create_redis_connection
+  def self.slow_janitor redis=nil
+    real_janitor @slow_inbox, @slow_processing, (redis || create_redis_connection)
   end
 
 private
@@ -112,13 +124,7 @@ private
   end
 
   def self.create_redis_connection
-    if @redis_config.is_a? Array
-      RedisCluster.new @redis_config
-    else
-      redis = Redis.new @redis_config
-      redis.select 7
-      redis
-    end
+    Redis.new @redis_config
   end 
 
   def self.log message
