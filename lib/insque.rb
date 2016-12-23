@@ -15,6 +15,10 @@ module Insque
     @redis
   end
 
+  def redis_class= klass
+    @redis_class = klass
+  end
+
   def redis_config
     @redis_config
   end
@@ -124,7 +128,7 @@ private
   end
 
   def self.create_redis_connection
-    Redis.new @redis_config
+    (@redis_class || Redis).new @redis_config
   end 
 
   def self.log message
