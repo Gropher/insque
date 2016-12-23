@@ -92,7 +92,7 @@ private
     end
   end
 
-  def real_janitor inbox, processing, redis
+  def self.real_janitor inbox, processing, redis
     loop do
       redis.watch processing
       errors = []
