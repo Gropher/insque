@@ -11,15 +11,15 @@ module Insque
     @redis = redis
   end
 
-  def redis
+  def self.redis
     @redis
   end
 
-  def redis_class= klass
+  def self.redis_class= klass
     @redis_class = klass
   end
 
-  def redis_config
+  def self.redis_config
     @redis_config
   end
 
