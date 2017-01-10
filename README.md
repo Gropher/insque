@@ -4,7 +4,7 @@ Instant queue. Background processing and message driven communication tool. Fast
 
 ## Installation
 
-Add this line to your application's Gemfile:
+Add this line to your application's `Gemfile`:
 
     gem 'insque'
 
@@ -29,11 +29,18 @@ To broadcast message use:
 ```ruby
 Insque.broadcast :message_name, {:params => {:some => :params}}
 ```
-There is an easy way to use insque as background jobs processing. You can use `send_later` method to call any method of your rails models in background
-. You still need listener running to make this work.
+There is an easy way to use insque as background jobs processing. You can use `send_later` method to call any method of your rails models in background:
 ```ruby
 @model = MyModel.first
 @model.send_later :mymethod, 'some', 'params'
+```
+You'll need a special slow listener running to make this work.
+```ruby
+Insque.slow_listen
+```
+there is a matching slow janitor as well:
+```ruby
+Insque.slow_janitor
 ```
 
 ### Recieving
@@ -61,28 +68,14 @@ To start recieving messages you need to:
 
    or just run `bundle exec rake insque:janitor` from your console.
 
-### Slow Queue and send_later
-
-Insque can be used for processing slow tasks in background. Slow tasks created with send_later method call of any ActiveRecord model:
-```ruby
-User.send_later :some_slow_method
-```
-and processed by a special slow listener:
-```ruby
-Insque.slow_listen
-```
-there is matching slow janitor as well:
-```ruby
-Insque.slow_janitor
-```
-### insque:run
+### Run All At Once
 
 There is a simple way to run all insque workers, both regular and slow in a single multi-threaded process:
 ```ruby
 bundle exec rake insque:run
 ```
 
-### RedisCluster support
+### Redis Cluster Support
 
 To make insque run on Redis Cluster add this line to your application's `Gemfile`:
 
