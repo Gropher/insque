@@ -16,5 +16,5 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
   gem.version       = Insque::VERSION
   
-  gem.add_dependency('redis', '~> 2.2', '>= 2.2.2')
+  gem.add_dependency('redis', '> 2')
 end
