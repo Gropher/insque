@@ -49,6 +49,7 @@ module Insque
       begin
         parsed_message = JSON.parse message
         send(parsed_message['message'], parsed_message) 
+      rescue NoMethodError
       rescue => e
         log "#{worker_name} ========== BROKEN_MESSAGE: #{message} =========="
         log e.inspect
