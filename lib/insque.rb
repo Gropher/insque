@@ -48,7 +48,7 @@ module Insque
       log "#{worker_name} RECEIVING: #{message}" if @debug
       begin
         parsed_message = JSON.parse message
-        send(parsed_message['message'], parsed_message) if self.respond_to? parsed_message['message']
+        send(parsed_message['message'], parsed_message) 
       rescue => e
         log "#{worker_name} ========== BROKEN_MESSAGE: #{message} =========="
         log e.inspect
