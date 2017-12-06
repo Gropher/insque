@@ -78,8 +78,10 @@ module Insque
             restart << parsed_message.merge(:restarted_at => Time.now.utc)
             delete << m
           end
-        rescue
+        rescue => e
           log "========== JANITOR_BROKEN_MESSAGE: #{m} =========="
+          log e.inspect
+          log e.backtrace
         end
       end
       result = redis.multi do |r|
