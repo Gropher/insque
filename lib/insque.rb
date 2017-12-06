@@ -71,10 +71,10 @@ module Insque
       redis.lrange(@processing, 0, -1).each do |m|
         begin
           parsed_message = JSON.parse(m)
-          if parsed_message['restarted_at'] && DateTime.parse(parsed_message['restarted_at']) < 1.hour.ago.utc
+          if parsed_message['restarted_at'] && (Time.now - DateTime.parse(parsed_message['restarted_at'])) > 3600
             errors << parsed_message 
             delete << m
-          elsif DateTime.parse(parsed_message['broadcasted_at']) < 1.hour.ago.utc
+          elsif (Time.now - DateTime.parse(parsed_message['restarted_at'])) > 3600
             restart << parsed_message.merge(:restarted_at => Time.now.utc)
             delete << m
           end
