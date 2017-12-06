@@ -74,7 +74,7 @@ module Insque
           if parsed_message['restarted_at'] && (Time.now - DateTime.parse(parsed_message['restarted_at'])) > 3600
             errors << parsed_message 
             delete << m
-          elsif (Time.now - DateTime.parse(parsed_message['restarted_at'])) > 3600
+          elsif (Time.now - DateTime.parse(parsed_message['broadcasted_at'])) > 3600
             restart << parsed_message.merge(:restarted_at => Time.now.utc)
             delete << m
           end
