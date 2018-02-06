@@ -63,7 +63,7 @@ module Insque
     redis = Redis.new @redis_config
 
     loop do
-      redis.setex "name_#{@inbox}", @inbox, 10800
+      redis.setex "name_#{@inbox}", 10800, @inbox
       redis.watch @processing
       errors = []
       restart = []
