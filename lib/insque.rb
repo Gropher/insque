@@ -24,7 +24,7 @@ module Insque
     keys = []
     case recipient
     when :any
-      keys = @redis.keys 'insque_inbox_*'
+      keys = @redis.mget *@redis.keys('name_insque_inbox_*')
     when :self
       keys = [@inbox]
     else
@@ -41,13 +41,10 @@ module Insque
 
   def self.listen worker_name=''
     redis = Redis.new @redis_config
-    redis.select 7
 
     log "#{worker_name} START LISTENING #{@inbox}"
-    redis.lpush(@inbox, { message: "#{@sender}_init", broadcasted_at: Time.now.utc }.to_json) unless redis.exists(@inbox)
     loop do
       message = redis.brpoplpush(@inbox, @processing, 0)
-      redis.expire @inbox, 10800
       log "#{worker_name} RECEIVING: #{message}" if @debug
       begin
         parsed_message = JSON.parse message
@@ -64,9 +61,9 @@ module Insque
 
   def self.janitor
     redis = Redis.new @redis_config
-    redis.select 7
 
     loop do
+      redis.setex "name_#{inbox}", @inbox, 10800
       redis.watch @processing
       errors = []
       restart = []
