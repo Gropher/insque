@@ -30,12 +30,11 @@ module Insque
     else
       keys = recipient.is_a?(Array) ? recipient : [recipient]
     end
-    value = { :message => "#{@sender}_#{message}", :params => params, :broadcasted_at => Time.now.utc }
+    value = { message: "#{@sender}_#{message}", params: params, broadcasted_at: Time.now.utc }
     log "SENDING: #{value.to_json} TO #{keys.to_json}" if @debug
     @redis.multi do |r|
       keys.each do |k| 
         r.lpush k, value.to_json
-        r.expire k, 3600*3
       end
     end
   end
@@ -45,8 +44,10 @@ module Insque
     redis.select 7
 
     log "#{worker_name} START LISTENING #{@inbox}"
+    redis.lpush(@inbox, { message: "#{@sender}_init", broadcasted_at: Time.now.utc }.to_json) unless redis.exists(@inbox)
     loop do
       message = redis.brpoplpush(@inbox, @processing, 0)
+      redis.expire @inbox, 10800
       log "#{worker_name} RECEIVING: #{message}" if @debug
       begin
         parsed_message = JSON.parse message
