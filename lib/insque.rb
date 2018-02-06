@@ -24,7 +24,7 @@ module Insque
     keys = []
     case recipient
     when :any
-      keys = @redis.smembers 'insque_inboxes'
+      keys = @redis.keys 'insque_inbox_*'
     when :self
       keys = [@inbox]
     else
@@ -33,7 +33,10 @@ module Insque
     value = { :message => "#{@sender}_#{message}", :params => params, :broadcasted_at => Time.now.utc }
     log "SENDING: #{value.to_json} TO #{keys.to_json}" if @debug
     @redis.multi do |r|
-      keys.each {|k| r.lpush k, value.to_json}
+      keys.each do |k| 
+        r.lpush k, value.to_json
+        r.expire k, 3600*3
+      end
     end
   end
 
@@ -41,7 +44,6 @@ module Insque
     redis = Redis.new @redis_config
     redis.select 7
 
-    redis.sadd 'insque_inboxes', @inbox
     log "#{worker_name} START LISTENING #{@inbox}"
     loop do
       message = redis.brpoplpush(@inbox, @processing, 0)
