@@ -41,6 +41,7 @@ module Insque
 
   def self.listen worker_name=''
     redis = Redis.new @redis_config
+    @redis.select 7
 
     log "#{worker_name} START LISTENING #{@inbox}"
     loop do
@@ -61,6 +62,7 @@ module Insque
 
   def self.janitor
     redis = Redis.new @redis_config
+    @redis.select 7
 
     loop do
       redis.setex "name_#{@inbox}", 10800, @inbox
