@@ -124,7 +124,7 @@ if defined?(ActiveRecord::Base)
       excluded = (options[:exclude] || []).map(&:to_s)
 
       set_callback :commit, :after do
-        action = [:create, :update, :destroy].map {|a| a if transaction_include_action?(a) }.compact.first
+        action = [:create, :update, :destroy].map {|a| a if transaction_include_any_action?([a]) }.compact.first
         params = self.serializable_hash(options).delete_if {|key| (['created_at', 'updated_at'] + excluded).include? key}
         Insque.broadcast :"#{self.class.to_s.underscore}_#{action}", params
       end
