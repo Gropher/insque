@@ -3,6 +3,16 @@ require "redis"
 require "insque/railtie" if defined?(Rails)
 
 module Insque
+  DEFAULT_INBOX_TTL = 10800 # seconds
+
+  def self.inbox_ttl= val
+    @inbox_ttl = val
+  end
+
+  def self.inbox_ttl
+    @inbox_ttl || DEFAULT_INBOX_TTL
+  end
+
   def self.debug= debug
     @debug = debug
   end
@@ -31,6 +41,7 @@ module Insque
   def self.sender= sender
     @sender = sender
     @inbox = "{insque}inbox_#{sender}"
+    @inbox_pointer = "{insque}inbox_pointer_#{sender}"
     @processing = "{insque}processing_#{sender}"
     @slow_inbox = "{insque}slow_inbox_#{sender}"
     @slow_processing = "{insque}slow_processing_#{sender}"
@@ -41,7 +52,7 @@ module Insque
     keys = []
     case recipient
     when :any
-      keys = @redis.smembers '{insque}inboxes'
+      keys = @redis.mget *@redis.keys('{insque}inbox_pointer_*')
     when :self
       keys = [@inbox]
     when :slow
@@ -58,8 +69,7 @@ module Insque
 
   def self.listen worker_name='', redis=nil
     redis ||= create_redis_connection
-    redis.sadd '{insque}inboxes', @inbox
-    do_listen @inbox, @processing, redis, worker_name
+    do_listen @inbox, @processing, redis, worker_name, @inbox_pointer
   end
 
   def self.slow_listen worker_name='', redis=nil
@@ -75,9 +85,10 @@ module Insque
   end
 
 private
-  def self.do_listen inbox, processing, redis, worker_name
+  def self.do_listen inbox, processing, redis, worker_name, pointer=nil
     log "#{worker_name} START LISTENING #{inbox}"
     loop do
+      redis.setex(pointer, inbox_ttl, inbox) if pointer
       message = redis.brpoplpush(inbox, processing, 0)
       log "#{worker_name} RECEIVING: #{message}" if @debug
       begin
