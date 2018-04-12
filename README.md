@@ -27,7 +27,7 @@ Sender name is the unique identifier of your instance of insque. You can use sev
 
 To broadcast message use:
 ```ruby
-Insque.broadcast :message_name, {:params => {:some => :params}}
+Insque.broadcast :message_name, { params: { some: :param } }
 ```
 There is an easy way to use insque as background jobs processing. You can use `send_later` method to call any method of your rails models in background:
 ```ruby
