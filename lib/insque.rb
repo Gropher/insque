@@ -52,7 +52,8 @@ module Insque
     keys = []
     case recipient
     when :any
-      keys = @redis.mget *@redis.keys('{insque}inbox_pointer_*')
+      pointers = @redis.keys('{insque}inbox_pointer_*')
+      keys = pointers.count > 0 ? @redis.mget(*pointers) : []
     when :self
       keys = [@inbox]
     when :slow
@@ -60,7 +61,7 @@ module Insque
     else
       keys = recipient.is_a?(Array) ? recipient : [recipient]
     end
-    value = { :message => "#{@sender}_#{message}", :params => params, :broadcasted_at => Time.now.utc }
+    value = { message: "#{@sender}_#{message}", params: params, broadcasted_at: Time.now.utc }
     log "SENDING: #{value.to_json} TO #{keys.to_json}" if @debug
     @redis.multi do |r|
       keys.each {|k| r.lpush k, value.to_json}
@@ -117,7 +118,7 @@ private
             errors << parsed_message 
             delete << m
           elsif DateTime.parse(parsed_message['broadcasted_at']) < 1.hour.ago.utc
-            restart << parsed_message.merge(:restarted_at => Time.now.utc)
+            restart << parsed_message.merge(restarted_at: Time.now.utc)
             delete << m
           end
         rescue
@@ -158,7 +159,7 @@ end
 if defined?(ActiveRecord::Base)
   class ActiveRecord::Base
     def send_later(method, *args)
-      Insque.broadcast :send_later, {:class => self.class.name, :id => id, :method => method, :args => args }, :slow
+      Insque.broadcast :send_later, { class: self.class.name, id: id, method: method, args: args }, :slow
     end
     def self.acts_as_insque_crud(*args)
       options = args.extract_options!

@@ -2,11 +2,11 @@
 require File.expand_path('../lib/insque/version', __FILE__)
 
 Gem::Specification.new do |gem|
-  gem.authors       = ["gropher"]
+  gem.authors       = ["Yuri Gomozov"]
   gem.email         = ["grophen@gmail.com"]
   gem.description   = "Instant queue. Background processing and message driven communication tool. Faster and simplier alternative to Resque."
   gem.summary       = "Redis-based multi-threaded queue"
-  gem.homepage      = "https://github.com/Gropher/Insque"
+  gem.homepage      = "https://github.com/Gropher/insque"
   gem.licenses      = ['MIT']
 
   gem.files         = `git ls-files`.split($\)
