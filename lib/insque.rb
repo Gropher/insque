@@ -132,9 +132,9 @@ private
       if result
         errors.each {|m| log "ERROR: #{m.to_json}" }
         restart.each {|m| log "RESTART: #{m.to_json}" }
-        log "CLEANING SUCCESSFULL"
+        log "CLEANING #{inbox} SUCCESSFULL"
       else
-        log "CLEANING FAILED"
+        log "CLEANING #{inbox} FAILED"
       end
       sleep(Random.rand * 300)
     end
