@@ -1,0 +1,10 @@
+version: '3.2'
+
+services:
+  redis:
+    image: redis
+    ports:
+      - target: 6379
+        published: 63790
+        protocol: tcp
+        mode: host
