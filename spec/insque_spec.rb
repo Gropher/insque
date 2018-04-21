@@ -30,7 +30,7 @@ module Insque
   end
 end
 
-RSpec.describe 'streamer' do
+RSpec.describe 'insque' do
   before(:all) do
     system "docker swarm init || true"
     system "docker stack deploy -c insque.local.yml insque"

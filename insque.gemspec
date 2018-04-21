@@ -17,9 +17,9 @@ Gem::Specification.new do |gem|
   gem.version       = Insque::VERSION
   
   gem.add_dependency('redis', '> 2')
-  gem.add_dependency('json')
-  gem.add_development_dependency('rspec')
-  gem.add_development_dependency('activesupport')
-  gem.add_development_dependency('activerecord')
-  gem.add_development_dependency('sqlite3')
+  gem.add_dependency('json', '> 2')
+  gem.add_development_dependency('rspec', '> 3')
+  gem.add_development_dependency('activesupport', '> 3')
+  gem.add_development_dependency('activerecord', '> 3')
+  gem.add_development_dependency('sqlite3', '> 1')
 end
