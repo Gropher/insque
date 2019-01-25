@@ -36,7 +36,7 @@ RSpec.describe 'insque' do
     system "docker stack deploy -c insque.local.yml insque"
     sleep 10
     Thread.abort_on_exception=true
-    Insque.debug = false
+    Insque.logger.level = :error
     Insque.sender = 'myapp'
     Insque.inbox_ttl = 3
     Insque.redis_config = { host: 'localhost', port: 63790 }
@@ -53,6 +53,9 @@ RSpec.describe 'insque' do
   end
 
   before(:each) do
+    Insque.redis.flushall
+  rescue
+    sleep 10
     Insque.redis.flushall
   end
 
@@ -76,7 +79,7 @@ RSpec.describe 'insque' do
   it "restarts broken message" do
     janitor = Thread.new { Insque.janitor }
     Insque.redis.lpush('{insque}processing_myapp', { message: 'myapp_test', broadcasted_at: 1.hour.ago }.to_json)
-    sleep 3
+    sleep 4
     expect(Insque.redis.llen '{insque}processing_myapp').to eq(0)
     expect(Insque.redis.llen '{insque}inbox_myapp').to eq(1)
     janitor.exit

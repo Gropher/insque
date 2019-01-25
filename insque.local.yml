@@ -3,6 +3,7 @@ version: '3.2'
 services:
   redis:
     image: redis
+    command: redis-server --save "" --appendonly no
     ports:
       - target: 6379
         published: 63790

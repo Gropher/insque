@@ -1,7 +1,8 @@
 require "insque/version"
 require "redis"
 require "json"
-require "ougai"
+require "insque/json_formatter"
+require "insque/json_logger"
 require "insque/railtie" if defined?(Rails)
 
 module Insque
@@ -38,9 +39,8 @@ module Insque
 
   def self.logger
     unless @logger
-      @logger = Ougai::Logger.new(STDOUT)
-      @logger.with_fields = { tag: 'insque' }
-      @logger.default_message = nil
+      @logger = JsonLogger.new(STDOUT)
+      @logger.additional_fields = { tag: 'insque' }
     end
     @logger
   end
