@@ -36,7 +36,7 @@ RSpec.describe 'insque' do
     system "docker stack deploy -c insque.local.yml insque"
     sleep 10
     Thread.abort_on_exception=true
-    Insque.logger.level = :error
+    #Insque.logger.level = :error
     Insque.sender = 'myapp'
     Insque.inbox_ttl = 3
     Insque.redis_config = { host: 'localhost', port: 63790 }
@@ -53,10 +53,12 @@ RSpec.describe 'insque' do
   end
 
   before(:each) do
-    Insque.redis.flushall
-  rescue
-    sleep 10
-    Insque.redis.flushall
+    begin
+      Insque.redis.flushall
+    rescue
+      sleep 10
+      Insque.redis.flushall
+    end
   end
 
   it "can broadcast without listeners" do

@@ -1,6 +1,11 @@
 module Insque
   class JsonFormatter < ::Logger::Formatter
-    def call(severity, time, progname, msg, additional_fields = {})
+    def call(severity, time, progname, data)
+      msg, additional_fields = if data.is_a? ::Hash
+                                 [data[:msg], data[:additional_fields]]
+      else
+        [data, {}]
+      end
       message = case msg
                 when ::String
                   { message: msg }

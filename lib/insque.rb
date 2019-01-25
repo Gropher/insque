@@ -38,11 +38,7 @@ module Insque
   end
 
   def self.logger
-    unless @logger
-      @logger = JsonLogger.new(STDOUT)
-      @logger.additional_fields = { tag: 'insque' }
-    end
-    @logger
+    @logger ||= JsonLogger.new STDOUT, additional_fields: { tag: 'insque' }
   end
 
   def self.redis_class= klass
@@ -150,8 +146,8 @@ private
         delete.each {|m| r.lrem processing, 0, m }
       end
       if result
-        errors.each {|m| logger.info deleting: m }
-        restart.each {|m| logger.info restarting: m }
+        errors.each {|m| logger.debug deleting: m }
+        restart.each {|m| logger.debug restarting: m }
         logger.info cleaning: 'success', inbox: inbox
       else
         logger.info cleaning: 'failed', inbox: inbox
