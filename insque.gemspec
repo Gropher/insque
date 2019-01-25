@@ -18,6 +18,7 @@ Gem::Specification.new do |gem|
   
   gem.add_dependency('redis', '> 2')
   gem.add_dependency('json', '> 2')
+  gem.add_dependency('ougai', '> 1.7.1')
   gem.add_development_dependency('rspec', '> 3')
   gem.add_development_dependency('activesupport', '> 3')
   gem.add_development_dependency('activerecord', '> 3')

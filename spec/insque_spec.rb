@@ -36,7 +36,7 @@ RSpec.describe 'insque' do
     system "docker stack deploy -c insque.local.yml insque"
     sleep 10
     Thread.abort_on_exception=true
-    Insque.debug = true
+    Insque.debug = false
     Insque.sender = 'myapp'
     Insque.inbox_ttl = 3
     Insque.redis_config = { host: 'localhost', port: 63790 }

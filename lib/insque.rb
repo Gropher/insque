@@ -1,6 +1,7 @@
 require "insque/version"
 require "redis"
-require 'json'
+require "json"
+require "ougai"
 require "insque/railtie" if defined?(Rails)
 
 module Insque
@@ -23,16 +24,25 @@ module Insque
     @processing_ttl || DEFAULT_PROCESSING_TTL
   end
 
-  def self.debug= debug
-    @debug = debug
-  end
-
   def self.redis= redis
     @redis = redis
   end
 
   def self.redis
     @redis
+  end
+
+  def self.logger= l
+    @logger = l
+  end
+
+  def self.logger
+    unless @logger
+      @logger = Ougai::Logger.new(STDOUT)
+      @logger.with_fields = { tag: 'insque' }
+      @logger.default_message = nil
+    end
+    @logger
   end
 
   def self.redis_class= klass
@@ -72,7 +82,7 @@ module Insque
       keys = recipient.is_a?(Array) ? recipient : [recipient]
     end
     value = { message: "#{@sender}_#{message}", params: params, broadcasted_at: Time.now.utc }
-    log "SENDING: #{value.to_json} TO #{keys.to_json}" if @debug
+    logger.debug sending: value, to: keys
     @redis.multi do |r|
       keys.each {|k| r.lpush k, value.to_json}
     end
@@ -97,19 +107,17 @@ module Insque
 
 private
   def self.do_listen inbox, processing, redis, worker_name, pointer=nil
-    log "#{worker_name} START LISTENING #{inbox}"
+    logger.info starting: worker_name, listening: inbox
     loop do
       redis.setex(pointer, inbox_ttl, inbox) if pointer
       message = redis.brpoplpush(inbox, processing, 0)
       begin
-        log "#{worker_name} RECEIVING: #{message}" if @debug
         parsed_message = JSON.parse message
+        logger.debug receiving: parsed_message, worker: worker_name
         send(parsed_message['message'], parsed_message) 
       rescue NoMethodError
       rescue => e
-        log "#{worker_name} ========== BROKEN_MESSAGE: #{message} =========="
-        log e.inspect
-        log e.backtrace
+        logger.error e
       ensure
         redis.lrem processing, 0, message
       end
@@ -134,9 +142,7 @@ private
             delete << m
           end
         rescue => e
-          log "========== JANITOR_BROKEN_MESSAGE: #{m} =========="
-          log e.inspect
-          log e.backtrace
+          logger.error e
         end
       end
       result = redis.multi do |r|
@@ -144,11 +150,11 @@ private
         delete.each {|m| r.lrem processing, 0, m }
       end
       if result
-        errors.each {|m| log "ERROR: #{m.to_json}" }
-        restart.each {|m| log "RESTART: #{m.to_json}" }
-        log "CLEANING #{inbox} SUCCESSFULL"
+        errors.each {|m| logger.info deleting: m }
+        restart.each {|m| logger.info restarting: m }
+        logger.info cleaning: 'success', inbox: inbox
       else
-        log "CLEANING #{inbox} FAILED"
+        logger.info cleaning: 'failed', inbox: inbox
       end
       sleep(Random.rand((inbox_ttl.to_f / 10).ceil) + 1)
     end
@@ -157,11 +163,6 @@ private
   def self.create_redis_connection
     (@redis_class || Redis).new @redis_config
   end 
-
-  def self.log message
-    print "#{Time.now.utc} #{message}\n"
-    STDOUT.flush if @debug
-  end
 
   def self.create_send_later_handler
     define_singleton_method("#{@sender}_send_later") do |msg|
