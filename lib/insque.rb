@@ -78,7 +78,7 @@ module Insque
       keys = recipient.is_a?(Array) ? recipient : [recipient]
     end
     value = { message: "#{@sender}_#{message}", params: params, broadcasted_at: Time.now.utc }
-    logger.debug sending: value, to: keys
+    logger.debug event: :sending, message: value, to: keys
     @redis.multi do |r|
       keys.each {|k| r.lpush k, value.to_json}
     end
@@ -103,13 +103,13 @@ module Insque
 
 private
   def self.do_listen inbox, processing, redis, worker_name, pointer=nil
-    logger.info starting: worker_name, listening: inbox
+    logger.info event: :starting, worker_name: worker_name, inbox: inbox
     loop do
       redis.setex(pointer, inbox_ttl, inbox) if pointer
       message = redis.brpoplpush(inbox, processing, 0)
       begin
         parsed_message = JSON.parse message
-        logger.debug receiving: parsed_message, worker: worker_name
+        logger.debug event: :receiving, message: parsed_message, inbox: inbox
         send(parsed_message['message'], parsed_message) 
       rescue NoMethodError
       rescue => e
@@ -146,11 +146,11 @@ private
         delete.each {|m| r.lrem processing, 0, m }
       end
       if result
-        errors.each {|m| logger.debug deleting: m }
-        restart.each {|m| logger.debug restarting: m }
-        logger.info cleaning: 'success', inbox: inbox
+        errors.each {|m| logger.debug event: :deleting, message: m }
+        restart.each {|m| logger.debug event: :restarting, message: m }
+        logger.info event: :cleaning, status: 'success', inbox: inbox
       else
-        logger.info cleaning: 'failed', inbox: inbox
+        logger.info event: :cleaning, status: 'failed', inbox: inbox
       end
       sleep(Random.rand((inbox_ttl.to_f / 10).ceil) + 1)
     end
